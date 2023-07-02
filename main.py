@@ -83,7 +83,7 @@ def summarize_chunks(chunks):
         for chunk in chunks:
             prompt = f"Summarize the content of this string: {chunk}"
             data = {
-                "model": "text-davinci-003",
+                "model": "gpt-4",
                 "prompt": prompt,
                 "temperature": 1,
                 "max_tokens": 1000
