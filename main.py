@@ -7,7 +7,8 @@ import html2text
 from dotenv import load_dotenv
 from email.header import decode_header
 
-def fetch_latest_email():
+
+def fetch_emails_from_sender():
     try:
         # load environment variables from .env file
         load_dotenv()
@@ -24,46 +25,49 @@ def fetch_latest_email():
         mail = imaplib.IMAP4_SSL(IMAP_SERVER, 993)
         mail.login(IMAP_USERNAME, IMAP_PASSWORD)
 
-        # select the mailbox and search for the latest email
         mail.select("inbox")
         status, response = mail.search(None, "FROM", SENDER_EMAIL)
         email_ids = response[0].split()
-        latest_email_id = email_ids[-1]
 
-        # fetch the latest email
-        status, response = mail.fetch(latest_email_id, "(RFC822)")
-        raw_email = response[0][1]
+        emails = []
 
-        # parse the email content using the email module
-        email_message = email.message_from_bytes(raw_email)
+        for email_id in email_ids:
+            # fetch the email
+            status, response = mail.fetch(email_id, "(RFC822)")
+            raw_email = response[0][1]
 
-        # extract the subject and decode it
-        subject = decode_header(email_message["Subject"])[0][0]
-        if isinstance(subject, bytes):
-            # if it's bytes, decode to string
-            subject = subject.decode()
+            # parse the email content using the email module
+            email_message = email.message_from_bytes(raw_email)
 
-        # extract the text content of the email
-        body = ""
+            # extract the subject and decode it
+            subject = decode_header(email_message["Subject"])[0][0]
+            if isinstance(subject, bytes):
+                # if it's bytes, decode to string
+                subject = subject.decode()
 
-        for part in email_message.walk():
-            content_type = part.get_content_type()
-            if content_type == "text/plain":
-                charset = part.get_content_charset()
-                body += str(part.get_payload(decode=True), str(charset), "ignore")
+            # extract the text content of the email
+            body = ""
 
-        # Convert only to Text and remove html
-        body = html2text.html2text(body)
+            for part in email_message.walk():
+                content_type = part.get_content_type()
+                if content_type == "text/plain":
+                    charset = part.get_content_charset()
+                    body += str(part.get_payload(decode=True), str(charset), "ignore")
 
-        # split the email body into chunks of 2037 tokens (max 2048)
-        chunk_size = 2037
-        chunks = [body[i:i+chunk_size] for i in range(0, len(body), chunk_size)]
+            # Convert only to Text and remove html
+            body = html2text.html2text(body)
 
-        return subject, chunks
+            # split the email body into chunks of 2037 tokens (max 2048)
+            chunk_size = 2037
+            chunks = [body[i:i+chunk_size] for i in range(0, len(body), chunk_size)]
+
+            emails.append((subject, chunks))
+
+        return emails
     except Exception as e:
         print(f"An error occurred: {e}")
-        return None, []
-
+        return []
+    
 def summarize_chunks(chunks):
     try:
         # set up the OpenAI API client
@@ -81,9 +85,9 @@ def summarize_chunks(chunks):
         # summarize each chunk using OpenAI's text-davinci-003 model
         summaries = []
         for chunk in chunks:
-            prompt = f"Summarize the content of this string: {chunk}"
+            prompt = f"Summarize the content of this string using bulletpoints: {chunk}"
             data = {
-                "model": "gpt-4",
+                "model": "text-davinci-003",
                 "prompt": prompt,
                 "temperature": 1,
                 "max_tokens": 1000
@@ -93,6 +97,7 @@ def summarize_chunks(chunks):
             response = requests.post(openai_url, headers=headers, json=data)
 
             # extract the summary from the response
+            # print(response.json())
             summary = response.json()["choices"][0]["text"].strip()
             summaries.append(summary)
 
@@ -101,23 +106,25 @@ def summarize_chunks(chunks):
 
         return bullet_list
     except Exception as e:
-        print(f"An error occurred: {e}")
-        
+        print(f"An error occurred: {e}")    
+
 def main():
-    subject, chunks = fetch_latest_email()
-    if not chunks:
-        print("No email chunks to summarize")
+    emails = fetch_emails_from_sender()
+    if not emails:
+        print("No emails found from the specified sender.")
         return
 
-    bullet_list = summarize_chunks(chunks)
+    for subject, chunks in emails:
+        bullet_list = summarize_chunks(chunks)
 
-    if not bullet_list:
-        print("Failed to summarize email chunks")
-        return
+        if not bullet_list:
+            print(f"Failed to summarize email with subject: {subject}")
+            continue
 
-    # print the subject and bullet list
-    print("Subject: " + subject)
-    print("Summary: \n- " + bullet_list)
+        # print the subject and bullet list
+        print("Subject: " + subject)
+        print("Summary: \n- " + bullet_list)
+        print()
 
 if __name__ == "__main__":
     main()
