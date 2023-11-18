@@ -85,18 +85,25 @@ def summarize_chunks(chunks):
         # summarize each chunk using OpenAI's text-davinci-003 model
         summaries = []
         for chunk in chunks:
-            model: "gpt-3.5-turbo"
+            response_format: {"type": "json_object"}
             messages=[
                 {"role": "system", "content": "Your job is to summerize the content of email news letters"},
-                {"role": "user", "content": "Summarize the content of this string using bulletpoints: {chunk}"}
-            ]
+                {"role": "user", "content": f"Summarize the content of this string into bulletpoints: {chunk}"}
+                    ]
+            data = {
+                "model": "gpt-4",
+                "messages": messages,
+                "temperature": 1,
+                "max_tokens": 1000
+            }
+            stream=True
 
             # make the HTTP request
             response = requests.post(openai_url, headers=headers, json=data)
-
+            # print(messages)
             # extract the summary from the response
             # print(response.json())
-            summary = response.json()["choices"][0]["text"].strip()
+            summary = response.json()['choices'][0]['message']['content'].strip()
             summaries.append(summary)
 
         # join the bullet points into a single string
