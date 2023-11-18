@@ -4,6 +4,7 @@ import openai
 import imaplib
 import requests
 import html2text
+import smtplib, ssl
 from dotenv import load_dotenv
 from email.header import decode_header
 
@@ -113,6 +114,8 @@ def summarize_chunks(chunks):
     except Exception as e:
         print(f"An error occurred: {e}")    
 
+
+
 def main():
     emails = fetch_emails_from_sender()
     if not emails:
@@ -130,6 +133,19 @@ def main():
         print("Subject: " + subject)
         print("Summary: \n- " + bullet_list)
         print()
+
+        SMTP_SERVER = os.getenv('SMTP_SERVER')
+        PORT = 465
+        EMAIL = os.getenv('IMAP_USERNAME')
+        EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
+        message =  f"""\
+            Subject: newsletter summary
+                {bullet_list}
+            This message was summerised with chatgpt."""
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(SMTP_SERVER, PORT, context=context) as server:
+            server.login(EMAIL, EMAIL_PASSWORD)
+            server.sendmail(EMAIL, EMAIL, message)
 
 if __name__ == "__main__":
     main()
