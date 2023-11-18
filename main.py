@@ -5,6 +5,8 @@ import imaplib
 import requests
 import html2text
 import smtplib, ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 from email.header import decode_header
 
@@ -139,12 +141,16 @@ def main():
         EMAIL = os.getenv('IMAP_USERNAME')
         EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
         message =  f"""\
-            Subject: newsletter summary
-                {bullet_list}
-            This message was summerised with chatgpt."""
+            newsletter summary of {subject}
+
+
+            Summary of email: \n-
+                {bullet_list} """
+       # message["Subject"] = f"{subject}"
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL(SMTP_SERVER, PORT, context=context) as server:
             server.login(EMAIL, EMAIL_PASSWORD)
+            # sendmail first is sender second is reciever, both are same now because am sending to self https://realpython.com/python-send-email/#option-2-setting-up-a-local-smtp-server
             server.sendmail(EMAIL, EMAIL, message)
 
 if __name__ == "__main__":
