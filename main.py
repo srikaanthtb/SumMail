@@ -91,7 +91,7 @@ def summarize_chunks(chunks):
                 {"role": "user", "content": f"Summarize the content of this string into bulletpoints: {chunk}"}
                     ]
             data = {
-                "model": "gpt-4",
+                "model": "gpt-4-vision-preview",
                 "messages": messages,
                 "temperature": 1,
                 "max_tokens": 1000
