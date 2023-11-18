@@ -91,7 +91,7 @@ def summarize_chunks(chunks):
             response_format: {"type": "json_object"}
             messages=[
                 {"role": "system", "content": "Your job is to summerize the content of email news letters"},
-                {"role": "user", "content": f"Summarize the content of this string into bulletpoints: {chunk}"}
+                {"role": "user", "content": f"Summarize the content of this email into bulletpoints: {chunk}"}
                     ]
             data = {
                 "model": "gpt-4-vision-preview",
