@@ -74,7 +74,7 @@ def summarize_chunks(chunks):
         openai.api_key = os.getenv('OPENAI_API_KEY')
 
         # set up the API endpoint
-        openai_url = "https://api.openai.com/v1/completions"
+        openai_url = "https://api.openai.com/v1/chat/completions"
 
         # set up the request headers
         headers = {
@@ -85,13 +85,11 @@ def summarize_chunks(chunks):
         # summarize each chunk using OpenAI's text-davinci-003 model
         summaries = []
         for chunk in chunks:
-            prompt = f"Summarize the content of this string using bulletpoints: {chunk}"
-            data = {
-                "model": "text-davinci-003",
-                "prompt": prompt,
-                "temperature": 1,
-                "max_tokens": 1000
-            }
+            model: "gpt-3.5-turbo"
+            messages=[
+                {"role": "system", "content": "Your job is to summerize the content of email news letters"},
+                {"role": "user", "content": "Summarize the content of this string using bulletpoints: {chunk}"}
+            ]
 
             # make the HTTP request
             response = requests.post(openai_url, headers=headers, json=data)
