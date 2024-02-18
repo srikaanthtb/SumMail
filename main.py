@@ -1,5 +1,6 @@
 import os
 import email
+from plistlib import UID
 import openai
 import imaplib
 import requests
@@ -29,11 +30,11 @@ def fetch_emails_from_sender():
         mail.login(IMAP_USERNAME, IMAP_PASSWORD)
 
         mail.select("inbox")
-        status, response = mail.search(None, "FROM", SENDER_EMAIL)
+        status, response = mail.search(None, "UNSEEN FROM", SENDER_EMAIL)
+        
         email_ids = response[0].split()
 
         emails = []
-
         for email_id in email_ids:
             # fetch the email
             status, response = mail.fetch(email_id, "(RFC822)")
@@ -88,9 +89,9 @@ def summarize_chunks(chunks):
         # summarize each chunk using OpenAI's text-davinci-003 model
         summaries = []
         for chunk in chunks:
-            response_format: {"type": "json_object"}
+            response_format: {"type": "json_object"} # type: ignore
             messages=[
-                {"role": "system", "content": "Your job is to summerize the content of email news letters"},
+                {"role": "system", "content": "Your job is to summerize the content of email news letters if there are any links in the email put them in their own bullet point"},
                 {"role": "user", "content": f"Summarize the content of this email into bulletpoints: {chunk}"}
                     ]
             data = {
@@ -103,9 +104,9 @@ def summarize_chunks(chunks):
 
             # make the HTTP request
             response = requests.post(openai_url, headers=headers, json=data)
-            # print(messages)
+            #print(messages)
             # extract the summary from the response
-            # print(response.json())
+            #print(response.json())
             summary = response.json()['choices'][0]['message']['content'].strip()
             summaries.append(summary)
 
@@ -145,7 +146,7 @@ def main():
 
 
             Summary of email: \n-
-                {bullet_list} """
+                {bullet_list} """.encode('utf8')
        # message["Subject"] = f"{subject}"
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL(SMTP_SERVER, PORT, context=context) as server:
