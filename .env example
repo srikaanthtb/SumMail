@@ -1,0 +1,7 @@
+IMAP_SERVER="imap.gmail.com"
+IMAP_USERNAME="your-email-here"
+IMAP_PASSWORD="https://support.google.com/accounts/answer/185833?hl=en"
+OPENAI_API_KEY="open ai key here"
+SENDER_EMAIL="newsletter email you want to summerize here"
+SMTP_SERVER = "smtp.gmail.com"
+EMAIL_PASSWORD = "https://support.google.com/accounts/answer/185833?hl=en" (email password and imap password are the same)
