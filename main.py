@@ -86,7 +86,7 @@ def summarize_chunks(chunks):
             "Content-Type": "application/json",
         }
 
-        # summarize each chunk using OpenAI's text-davinci-003 model
+        # summarize each chunk using OpenAI's gpt-4 model
         summaries = []
         for chunk in chunks:
             response_format: {"type": "json_object"} # type: ignore
@@ -95,9 +95,9 @@ def summarize_chunks(chunks):
                 {"role": "user", "content": f"Summarize the content of this email into bulletpoints: {chunk}"}
                     ]
             data = {
-                "model": "gpt-4-vision-preview",
+                "model": "gpt-4-0125-preview",
                 "messages": messages,
-                "temperature": 1,
+                "temperature": 0.7,
                 "max_tokens": 1000
             }
             stream=True
