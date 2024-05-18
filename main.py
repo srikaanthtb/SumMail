@@ -89,11 +89,11 @@ def summarize_chunks(chunks):
         summaries = []
         for chunk in chunks:
             messages = [
-                {"role": "system", "content": "Your job is to summarize the content of email newsletters. If there are any links in the email, put them in their own bullet point."},
+                {"role": "system", "content": "Your job is to summarize the content of email newsletters. Highlight the main points, important updates, and key takeaways."},
                 {"role": "user", "content": f"Summarize the content of this email into bullet points: {chunk}"}
             ]
             data = {
-                "model": "gpt-4-0125-preview",
+                "model": "gpt-4o",
                 "messages": messages,
                 "temperature": 0.7,
                 "max_tokens": 1000
