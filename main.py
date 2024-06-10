@@ -65,7 +65,8 @@ def fetch_emails_from_sender():
             chunks = [body[i:i+chunk_size] for i in range(0, len(body), chunk_size)]
 
             emails.append((subject, chunks))
-
+            mail.store(email_id, '+X-GM-LABELS', '\\Trash')
+            # mail.expunge()
         return emails
     except Exception as e:
         print(f"An error occurred: {e}")
